@@ -479,6 +479,88 @@ With all your users in clerk, and your clerk flows in prod, we can now delete al
 
 You can delete the &lt;ClerkMigrationTool> component from template.ts. You can delete template.ts all together if you have no use for it.
 
-You can delete the `/api/clerk-migrate` and `/api/getUsersByIds` routes.
+```diff
+- import { ClerkMigrationTool } from "nextauth-clerk-migration-package";
+
+- export default function Template({ children }) {
+-  return (
+-    <ClerkMigrationTool url={"/api/clerk-migrate"}>
+-      {children}
+-    </ClerkMigrationTool>
+-  );
+- }
+```
+
+You can delete the `/api/clerk-migrate` and `/api/getUsersByIds` routes as well as the helper functions.
+
+```diff
+- import { auth } from "@/auth";
+- import { db } from "@/server/neonDb";
+- import { users } from "@/server/neonDb/schema";
+- import { eq } from "drizzle-orm";
+- import { type CreateUserParams } from "./routeHelper";
+
+- export async function oldGetUsersByIds(ids: string[]) {
+-   const user = await db.select().from(users).where(inArray(users.id, ids));
+- 
+-   return users.map(user => ({
+-     external_id: user.id,
+-     email_address: [user.email],
+-     password: user.password,
+-     skip_password_checks: true,
+-     skip_password_requirement: true,
+-   })); // need to change this to openapi spec
+- }
+```
+
+
+```diff
+- import { auth } from "@/auth";
+- import { db } from "@/server/neonDb";
+- import { users } from "@/server/neonDb/schema";
+- import { eq } from "drizzle-orm";
+- import { NextRequest, NextResponse } from "next/server";
+
+- async function getUserIdFromSession() {
+-   const session = await auth();
+-   const user = await db.query.users.findFirst({
+-     where: eq(users.email, session!.user!.email!),
+-   });
+
+-   return user!.id;
+- }
+
+- export const POST = async (req: NextRequest) => {
+-   const userId = await getUserIdFromSession();
+-   const body = await req.json();
+-   const clerkJWT = body.clerkJWT;
+
+-   const res = await fetch("http://localhost:3001/api/addactiveuser", {
+-     method: "POST",
+-     headers: {
+-       "Content-Type": "application/json",
+-       Authorization: `Bearer ${process.env.CLERK_SECRET_KEY}`,
+-     },
+-     body: JSON.stringify({ id: userId, clerkJWT }),
+-   });
+-   const data = await res.json();
+
+-   return new NextResponse(JSON.stringify({ data }), { status: res.status });
+- };
+```
+
+```diff
+- import { NextRequest } from "next/server";
+- import { oldGetUsersByIds } from "@/sampleHelpers"
+
+
+- export const POST = async (req: NextRequest) => {
+-   const body = await req.json();
+
+-   const createParams = oldGetUsersByIds(body.ids);
+
+-   return new NextResponse(JSON.stringify(createParams), { status: res.status });
+- };
+```
 
 After these are done, you have now successfully migrated to Clerk!
