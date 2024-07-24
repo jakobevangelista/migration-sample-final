@@ -1,7 +1,5 @@
 # Migration Guide: Moving from Next-Auth to Clerk 
 
-(This branch optimizes to be done for you + offloads the server load to "clerk's" servers, we do this by having the migrator create 3 api points)
-
 ## Introduction
 
 Migrating from Next-Auth to Clerk can be daunting, but this guide aims to help you achieve a seamless transition with zero downtime. This guide covers running both middlewares simultaneously, importing users while keeping your application active, and ensuring a smooth experience for your users.
@@ -31,8 +29,6 @@ To ensure a smooth migration with minimal disruption to your users, we will foll
 During this part of the migration, users will sign in and sign up through nextauth.
 
 ### 1. Install @clerk/nextjs and nextauth-clerk-migration-package
-
-(I dont know how to do the cool tabbed thing to install in npm, yarn, pnpm, bun but once I learn how to do it, imma do it)
 
 Install @clerk/nextjs and nextauth-clerk-migration-package, the second package contains all the components you'll need for the migration.
 
