@@ -200,18 +200,17 @@ import { eq } from "drizzle-orm";
 import { type CreateUserParams } from "./routeHelper";
 
 // used on the second part of done for you batch
-export async function oldGetUserById(id: string) {
-  const user = await db.query.users.findFirst({
-    where: eq(users.id, id),
-  });
+export async function oldGetUsersByIds(ids: string[]) {
+  const user = await db.select().from(users).where(inArray(users.id, ids));
 
-  return {
-    external_id: user?.id,
-    email_address: [user!.email],
-    password: user!.password,
+
+  return users.map(user => ({
+    external_id: user.id,
+    email_address: [user.email],
+    password: user.password,
     skip_password_checks: true,
     skip_password_requirement: true,
-  } as CreateUserParams; // need to change this to openapi spec
+  })); // need to change this to openapi spec
 }
 
 // returns the list of all your users
