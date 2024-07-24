@@ -23,7 +23,7 @@ To ensure a smooth migration with minimal disruption to your users, we will foll
    5. [**Go to Migration Dashboard and set URL**](#go-to-migration-dashboard-and-set-getuserbyid-endpoint-url)
    6. [**Push to Prod**](#push-to-prod)
 2. [**Batch Import**](#2-batch-import)
-   1. [**Pass userId's to Migration Dashboard**](#passing-all-user-ids-to-migration-dashboard)
+   1. [**Pass userIds to Migration Dashboard**](#passing-all-user-ids-to-migration-dashboard)
 3. [**Replacing Sign In, Sign Up, and Data Access Patterns with Clerk**](#3-replacing-sign-in-sign-up-and-data-access-patterns-with-clerk)
 4. [**Clean Up Migration Components**](#4-cleaning-up-migration-components)
 
@@ -33,8 +33,7 @@ During this part of the migration, users will sign in and sign up through nextau
 
 ### 1. Setup Trickle
 
-Install @clerk/nextjs and nextauth-clerk-migration-package, the second package contains all the components you'll need for the migration.
-
+Install the necessary packages: 
 ```bash
 npm install @clerk/nextjs nextauth-clerk-migration-package
 ```
@@ -50,9 +49,7 @@ bun add @clerk/nextjs nextauth-clerk-migration-package
 
 #### Add Clerk Middleware
 
-We need Clerk's middleware in order to use useSignIn within &lt;TrickleWrapper>.
-
-First, add the Clerk middleware alongside the existing NextAuth middleware. Clerk middleware has to be the top wrapper for the entire middleware. In the example provided, we put a sample middleware functions within the next auth middleware, you can add whatever custom middleware functions you have.
+Add the Clerk middleware alongside the existing NextAuth middleware.
 
 ```js
 // src/app/middleware.ts
@@ -80,8 +77,6 @@ export const config = {
 #### Wrap Application in &lt;ClerkProvider>
 
 Wrap your application layout in the &lt;ClerkProvider> component to enable Clerk authentication. 
-
-(Highlight the lines of the wrapper)
 
 ```js
 // src/app/layout.tsx
@@ -117,8 +112,6 @@ export default function RootLayout({
 #### Wrapping your application with &lt;ClerkMigrationTool>
 
 To seamlessly transition your users from NextAuth to Clerk without any downtime, you have to wrap the &lt;ClerkMigrationTool> around your application in a template.ts file in the root component and export the endpoint that the trickle wrapper calls along with some helper functions the endpoint needs. You can read more about what template.ts does [here](https://nextjs.org/docs/app/api-reference/file-conventions/template).
-
-We have the wrapper made for you. You just need to import it, create a template.ts folder inside the root of your `app` directory, or `src` if you are using that, and wrap your app in it.
 
 You need to pass a prop to the &lt;ClerkMigrationTool> component which is the url of the endpoint you will create in the next step which is called `/api/clerk-migrate`.
 
@@ -241,13 +234,11 @@ You are now able to push to prod. Users will start to be created within clerk!
 
 The batch import handles the migration of the rest of the users that the trickle doesn't migrate through a scheduled process, ensuring all users are migrated.
 
-There are 2 major steps for batching, uploading a list of userId's to clerk, then importing them to Clerk. These process are done on our servers so we take the burden of compute, we just need a few things from you.
-
 #### Passing all user IDs to Migration Dashboard
 
 In the dashboard, there's a button to upload a .csv with a list of all of your user ids.
 
-With the list of userId's uploaded, you can monitor the dashboard to see when all of your users are migrated. Once the number of active users waiting to be signed in goes to 0, you can switch to clerk!
+With the list of userIds uploaded, you can monitor the dashboard to see when all of your users are migrated. Once the number of active users waiting to be signed in goes to 0, you can switch to clerk!
 
 ### 3. Replacing Sign In, Sign Up, and Data Access Patterns with Clerk
 
