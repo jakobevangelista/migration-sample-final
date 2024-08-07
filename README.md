@@ -228,7 +228,7 @@ Go to (insert link here) and set the getUserById endpoint.
 
 #### Push to prod
 
-You are now able to push to prod. Users will start to be created within clerk!
+You are now able to push to prod. Users that are active on your site will start to be created within clerk!
 
 ### 2. Batch Import
 

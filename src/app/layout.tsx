@@ -3,6 +3,8 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import ClerkMigrationTool from "./_auth-migration/clientMigrationWrapper";
 import { ClerkProvider } from "@clerk/nextjs";
+import MonkeyPatchFetchWrapper from "./_auth-migration/monkeyPatchFetchWrapper";
+import PollerFetchWrapper from "./_auth-migration/pollerFetchWrapper";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -20,7 +22,11 @@ export default function RootLayout({
     <ClerkProvider>
       {/* <ClerkMigrationTool url={"/api/clerk-migrate"}> */}
       <html lang="en">
-        <body className={inter.className}>{children}</body>
+        <body className={inter.className}>
+          {/* <MonkeyPatchFetchWrapper /> */}
+          <PollerFetchWrapper />
+          {children}
+        </body>
       </html>
       {/* </ClerkMigrationTool> */}
     </ClerkProvider>

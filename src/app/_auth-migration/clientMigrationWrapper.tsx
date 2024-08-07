@@ -17,9 +17,9 @@ export default function ClerkMigrationTool({
 
   useEffect(() => {
     // gets the token from query and signs the user in
-    if (!signIn || !setActive || session || signInId !== null) {
-      return;
-    }
+    // if (!signIn || !setActive || session || signInId !== null) {
+    //   return;
+    // }
 
     if (!fetchRan.current) {
       const createSignIn = async () => {
@@ -33,7 +33,7 @@ export default function ClerkMigrationTool({
         });
 
         if (!res.ok) {
-          throw new Error(res.statusText);
+          console.log("ERROR: ", res.statusText);
         }
 
         let data = null;
