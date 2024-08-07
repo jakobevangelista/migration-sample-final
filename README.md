@@ -15,17 +15,27 @@ Before you begin, ensure you have the following:
 ## Migration Overview
 
 To ensure a smooth migration with minimal disruption to your users, we will follow these steps:
-1. [**Setup Trickle**](#1-setup-trickle)
-   1. [**Add Clerk Middleware**](#add-clerk-middleware)
-   2. [**Wrap Application in &lt;ClerkProvider>**](#wrap-application-in-clerkprovider)
-   3. [**Wrap Application in &lt;ClerkMigrationTool>**](#wrapping-your-application-with-clerkmigrationtool)
-   4. [**Create Helper Function and `/api/getUsersByIds`**](#create-the-helper-function-and-apigetuserbyid)
-   5. [**Go to Migration Dashboard and set URL**](#go-to-migration-dashboard-and-set-getuserbyid-endpoint-url)
-   6. [**Push to Prod**](#push-to-prod)
-2. [**Batch Import**](#2-batch-import)
-   1. [**Pass userIds to Migration Dashboard**](#passing-all-user-ids-to-migration-dashboard)
-3. [**Replacing Sign In, Sign Up, and Data Access Patterns with Clerk**](#3-replacing-sign-in-sign-up-and-data-access-patterns-with-clerk)
-4. [**Clean Up Migration Components**](#4-cleaning-up-migration-components)
+- [Migration Guide: Moving from Next-Auth to Clerk](#migration-guide-moving-from-next-auth-to-clerk)
+  - [Introduction](#introduction)
+  - [Prerequisites](#prerequisites)
+  - [Migration Overview](#migration-overview)
+  - [Migration Steps](#migration-steps)
+    - [1. Setup Trickle](#1-setup-trickle)
+      - [Add Clerk Middleware](#add-clerk-middleware)
+      - [Wrap Application in \<ClerkProvider\>](#wrap-application-in-clerkprovider)
+      - [Wrapping your application with \<ClerkMigrationTool\>](#wrapping-your-application-with-clerkmigrationtool)
+      - [Create \<ClerkMigrationTool\> Endpoint](#create-clerkmigrationtool-endpoint)
+      - [Create the helper function and /api/getUsersByIds](#create-the-helper-function-and-apigetusersbyids)
+      - [Go to migration dashboard and set getUserById endpoint url](#go-to-migration-dashboard-and-set-getuserbyid-endpoint-url)
+      - [Push to prod](#push-to-prod)
+    - [2. Batch Import](#2-batch-import)
+      - [Passing all user IDs to Migration Dashboard](#passing-all-user-ids-to-migration-dashboard)
+    - [3. Replacing Sign In, Sign Up, and Data Access Patterns with Clerk](#3-replacing-sign-in-sign-up-and-data-access-patterns-with-clerk)
+      - [Migrate Data Access Patterns and Helpers](#migrate-data-access-patterns-and-helpers)
+      - [Custom session claims](#custom-session-claims)
+      - [Here is an example of accessing the user metadata tenet tables with the new patterns (using the patched auth function)](#here-is-an-example-of-accessing-the-user-metadata-tenet-tables-with-the-new-patterns-using-the-patched-auth-function)
+      - [Here is an example of accessing the user metadata through Clerk's metadata](#here-is-an-example-of-accessing-the-user-metadata-through-clerks-metadata)
+    - [4. Cleaning up Migration Components](#4-cleaning-up-migration-components)
 
 ## Migration Steps
 
@@ -387,60 +397,6 @@ export default async function Home() {
 
 ```
 
-#### We want users to edit their profile (attribute that are not classified as user metadata) in nextauth when they haven't been added to Clerk yet, but if they are in Clerk, we want them to edit profile information in Clerk, this allows them to change profile information during the migration process
-
-```js
-// src/app/changePassword/page.tsx
-
-import { auth as nextAuthFunction } from "@/auth";
-import { db } from "@/server/neonDb";
-import {
-  oldCheckHasSession,
-} from "@/app/_auth-migration/sampleHelpers";
-import { users } from "@/server/neonDb/schema";
-import { auth } from "@clerk/nextjs/server";
-
-import { UserButton } from "@clerk/nextjs";
-import { redirect } from "next/navigation";
-
-// checks if user is in Clerk, if in Clerk, change password in Clerk (semantic user button)
-// if not in Clerk, change password in nextauth
-export default async function Home() {
-  const { userId }: { userId: string | null } = auth();
-  const nexAuthUser = await oldCheckHasSession();
-
-  if (userId === null && nexAuthUser === null) {
-    return redirect("/sign-in");
-  }
-
-  // if the user hasn't been migrated to Clerk, change the password in nextauth
-  if (userId === null) {
-    return (
-      <>
-        <form
-          action={async (formData) => {
-            "use server";
-            await db.update(users).set({
-              password: formData.get("password") as string,
-            });
-          }}
-        >
-          <input type="password" name="password" />
-          <button type="submit">Change Password</button>
-        </form>
-      </>
-    );
-  }
-
-  // semantic representation of changing user profile in Clerk
-  return (
-    <>
-      <UserButton />
-    </>
-  );
-}
-```
-
 #### Here is an example of accessing the user metadata through Clerk's metadata
 
 If you would like to store user metadata within Clerk's User object, here is how you do it.
@@ -563,4 +519,4 @@ You can delete the `/api/clerk-migrate` and `/api/getUsersByIds` routes as well 
 - };
 ```
 
-After these are done, you have now successfully migrated to Clerk!
+After these are done, you can push these changes to prod and you have now successfully migrated to Clerk!
