@@ -33,7 +33,7 @@ export default function PollerFetchWrapper() {
       console.log("DATA: ", data);
       console.log("RES: ", res.status);
 
-      if (data.data.token === null || res.status === 200) {
+      if (data.data.token === null) {
         return;
       } else {
         try {
